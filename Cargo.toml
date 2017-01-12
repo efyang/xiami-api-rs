@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["efyang <edward.yang6771@gmail.com>"]
 
 [dependencies]
+top-sdk = {git = "https://github.com/efyang/top-sdk-rs"}
