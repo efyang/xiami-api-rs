@@ -1,3 +1,5 @@
+use top_sdk::TopRequest;
+
 pub trait XiamiRequest {
     fn url(&self) -> &str;
     fn params(&self) -> Vec<(&'static str, Parameter)>;
@@ -60,3 +62,16 @@ create_request! {
         category: String
     }
  }
+
+create_request! {
+    CollectRecommendGet,
+    "alibaba.xiami.api.collect.recommend.get",
+    optional {
+        page: isize,
+        limit: isize,
+        type_value: String,
+        description: String
+    }
+}
+
+

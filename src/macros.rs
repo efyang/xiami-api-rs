@@ -31,18 +31,16 @@ macro_rules! generate_request_new {
     }
 }
 
+macro_rules! check_type {
+    ($optionala:ident, type_value) => ($optionala);
+    ($optionala:ident, $optional:ident) => ($optionala);
+}
+
 macro_rules! request_setter_body {
-    ($this:expr, type_value) => {
-        {
-            let index = $this.params.binary_search_by_key(&"type", |&(name, _)| name).unwrap();
-            $this.params[index].1 = Some(type_value.into());
-            $this
-        }
-    };
     ($this:expr, $optional:ident) => {
         {
             let index = $this.params.binary_search_by_key(&stringify!($optional), |&(name, _)| name).unwrap();
-            $this.params[index].1 = Some($optional.into());
+            $this.params[index].1 = Some(check_type!($optional, $optional).into());
             $this
         }
     }
@@ -75,6 +73,24 @@ macro_rules! extract {
     (key_alt $key:ident:$ty:ident => $key_alt:expr) => ($key_alt);
 }
 
+macro_rules! impl_req {
+    ($name:ident, $url:expr) => {
+        impl XiamiRequest for $name {
+            fn url(&self) -> &'static str {
+                $url
+            }
+
+            fn params(&self) -> Vec<(&'static str, Parameter)> {
+                self.params
+                    .iter()
+                    .filter(|&&(_, ref p)| p.is_some())
+                    .map(|&(name, ref p)| (name, p.clone().unwrap()))
+                    .collect::<Vec<_>>()
+            }
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! create_request {
     {
@@ -99,21 +115,54 @@ macro_rules! create_request {
             }
             generate_request_setters!($name, $($optional:$optionaltype),*);
         }
+        impl_req!($name, $url);
+    };
+    {
+        $name:ident,
+        $url:expr,
+        optional { $($optional:ident : $optionaltype:ident),* }
+    } => {
+        pub struct $name {
+            params: [(&'static str, Option<Parameter>); count!($($optional)*)]
+        }
 
-        impl XiamiRequest for $name {
-            fn url(&self) -> &'static str {
-                $url
+        impl $name {
+            pub fn new() -> $name {
+                $name {
+                    params: {
+                        let mut tmp = [$((convert_type_name!($optional), None)),*];
+                        tmp.sort_by(|&(a, _), &(b, _)| a.cmp(b));
+                        tmp
+                    },
+                }
             }
+            generate_request_setters!($name, $($optional:$optionaltype),*);
+        }
+        impl_req!($name, $url);
+    };
+    {
+        $name:ident,
+        $url:expr,
+        required { $($required:ident : $requiredtype:ident),* }
+    } => {
+        pub struct $name {
+            params: [(&'static str, Option<Parameter>); count!($($required)*)]
+        }
 
-            fn params(&self) -> Vec<(&'static str, Parameter)> {
-                self.params
-                    .iter()
-                    .filter(|&&(_, ref p)| p.is_some())
-                    .map(|&(name, ref p)| (name, p.clone().unwrap()))
-                    .collect::<Vec<_>>()
+        impl $name {
+            pub fn new($($required : $requiredtype),*) -> $name {
+                $name {
+                    params: {
+                        let mut tmp = [$(type_to_param_type!($required, $requiredtype)),*];
+                        tmp.sort_by(|&(a, _), &(b, _)| a.cmp(b));
+                        tmp
+                    },
+                }
             }
         }
+        impl_req!($name, $url);
     };
+
     {
         $name:ident,
         $url:expr
