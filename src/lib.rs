@@ -3,7 +3,9 @@
 extern crate top_sdk;
 use top_sdk::*;
 
-mod requests;
+#[macro_use]
+mod macros;
+pub mod requests;
 
 pub struct XiamiClient {
     top_client: TaobaoClient,
