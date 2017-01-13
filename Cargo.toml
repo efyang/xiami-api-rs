@@ -1,7 +1,10 @@
 [package]
+authors = ["efyang <edward.yang6771@gmail.com>"]
 name = "xiami-api"
 version = "0.1.0"
-authors = ["efyang <edward.yang6771@gmail.com>"]
 
 [dependencies]
-top-sdk = {git = "https://github.com/efyang/top-sdk-rs"}
+interpolate_idents = "0.1.3"
+
+[dependencies.top-sdk]
+git = "https://github.com/efyang/top-sdk-rs"
