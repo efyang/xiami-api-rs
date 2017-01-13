@@ -9,11 +9,8 @@ macro_rules! convert_type_name {
 }
 
 macro_rules! type_to_param_type {
-    ($name:ident, isize) => {
-        (convert_type_name!($name), Some(Parameter::Number($name)))
-    };
-    ($name:ident, String) => {
-        (convert_type_name!($name), Some(Parameter::String($name)))
+    ($name:ident) => {
+        (convert_type_name!($name), Some($name.into()))
     };
 }
 
@@ -22,7 +19,7 @@ macro_rules! generate_request_new {
         fn new($($required : $requiredtype),*) -> $name<'a> {
             $name {
                 params: {
-                    let mut tmp = [$(type_to_param_type!($required, $requiredtype)),*];
+                    let mut tmp = [$(type_to_param_type!($required)),*];
                     tmp.sort_by(|&(a, _), &(b, _)| a.cmp(b));
                     tmp
                 },
@@ -56,21 +53,6 @@ macro_rules! generate_request_setters {
             }
          )*
     }
-}
-
-macro_rules! parse_mappings {
-    ($key:ident : $ty:ident) => {
-        $key:$ty => stringify!($key)
-    };
-    ($key:ident : $ty:ident => $key_alt:expr) => {
-        $key:$ty => $key_alt
-    };
-}
-
-macro_rules! extract {
-    (key $key:ident:$ty:ident => $key_alt:expr) => ($key);
-    (ty $key:ident:$ty:ident => $key_alt:expr) => ($ty);
-    (key_alt $key:ident:$ty:ident => $key_alt:expr) => ($key_alt);
 }
 
 macro_rules! impl_req {
@@ -107,7 +89,7 @@ macro_rules! create_request {
             pub fn new($($required : $requiredtype),*) -> $name {
                 $name {
                     params: {
-                        let mut tmp = [$(type_to_param_type!($required, $requiredtype)),*, $((convert_type_name!($optional), None)),*];
+                        let mut tmp = [$(type_to_param_type!($required)),*, $((convert_type_name!($optional), None)),*];
                         tmp.sort_by(|&(a, _), &(b, _)| a.cmp(b));
                         tmp
                     },
@@ -153,7 +135,7 @@ macro_rules! create_request {
             pub fn new($($required : $requiredtype),*) -> $name {
                 $name {
                     params: {
-                        let mut tmp = [$(type_to_param_type!($required, $requiredtype)),*];
+                        let mut tmp = [$(type_to_param_type!($required)),*];
                         tmp.sort_by(|&(a, _), &(b, _)| a.cmp(b));
                         tmp
                     },

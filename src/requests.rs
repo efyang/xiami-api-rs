@@ -9,25 +9,29 @@ pub trait XiamiRequest {
 pub enum Parameter {
     String(String),
     Number(isize),
+    Boolean(bool),
 }
 
-impl Into<Parameter> for isize {
-    fn into(self) -> Parameter {
-        Parameter::Number(self)
+macro_rules! auto_impl_param {
+    ($ty:ident, $variant:path) => {
+        impl Into<Parameter> for $ty {
+            fn into(self) -> Parameter {
+                $variant(self)
+            }
+        }
     }
 }
 
-impl Into<Parameter> for String {
-    fn into(self) -> Parameter {
-        Parameter::String(self)
-    }
-}
+auto_impl_param!(String, Parameter::String);
+auto_impl_param!(isize, Parameter::Number);
+auto_impl_param!(bool, Parameter::Boolean);
 
 impl Into<String> for Parameter {
     fn into(self) -> String {
         match self {
             Parameter::String(s) => s,
             Parameter::Number(i) => i.to_string(),
+            Parameter::Boolean(b) => b.to_string(),
         }
     }
 }
@@ -74,4 +78,71 @@ create_request! {
     }
 }
 
+create_request! {
+    RadioMyselfGet,
+    "alibaba.xiami.api.radio.myself.get",
+    optional {
+        limit: isize
+    }
+}
 
+create_request! {
+    RadioGuessGet,
+    "alibaba.xiami.api.radio.guess.get",
+    optional {
+        limit: isize
+    }
+}
+
+create_request! {
+    RadioPromotionsGet,
+    "alibaba.xiami.api.radio.promotions.get",
+    optional {
+        limit: isize,
+        page: isize
+    }
+}
+
+create_request! {
+    RankNewAlbumGet,
+    "alibaba.xiami.api.rank.newAlbum.get",
+    required {
+        type_value: String
+    }
+    optional {
+        limit: isize,
+        page: isize
+    }
+}
+
+create_request! {
+    RankSongsGet,
+    "alibaba.xiami.api.rank.songs.get",
+    required {
+        type_value: String
+    }
+}
+
+create_request! {
+    RecommendDailySongsGet,
+    "alibaba.xiami.api.recommend.dailySongs.get",
+    optional {
+        limit: isize,
+        ids: String
+    }
+}
+
+create_request! {
+    MemberAccountGet,
+    "alibaba.xiami.api.member.account.get"
+}
+
+create_request! {
+    LibrarySongsGet,
+    "alibaba.xiami.api.library.songs.get",
+    optional {
+        page: isize,
+        limit: isize,
+        type_value: bool
+    }
+}
