@@ -1,6 +1,6 @@
 pub trait XiamiRequest {
-    fn get_url(&self) -> &str;
-    fn get_params(&self) -> Vec<(&'static str, Parameter)>;
+    fn url(&self) -> &str;
+    fn params(&self) -> Vec<(&'static str, Parameter)>;
 }
 
 #[derive(Clone)]
@@ -31,12 +31,17 @@ macro_rules! count {
     ( $x:tt $($xs:tt)* ) => (1usize + count!($($xs)*));
 }
 
+macro_rules! convert_type_name {
+    (type_value) => ("type");
+    ($name:ident) => (stringify!($name));
+}
+
 macro_rules! type_to_param_type {
     ($name:ident, isize) => {
-        (stringify!($name), Some(Parameter::Number($name)))
+        (convert_type_name!($name), Some(Parameter::Number($name)))
     };
     ($name:ident, String) => {
-        (stringify!($name), Some(Parameter::String($name)))
+        (convert_type_name!($name), Some(Parameter::String($name)))
     };
 }
 
@@ -55,6 +60,14 @@ macro_rules! generate_request_new {
 }
 
 macro_rules! request_setter_body {
+    ($this:expr, type_value) => {
+        {
+            let index = $this.params.binary_search_by_key(&"type", |&(name, _)| name).unwrap();
+            $this.params[index].1 = Some(type_value.into());
+            $this
+        }
+
+    };
     ($this:expr, $optional:ident) => {
         {
             let index = $this.params.binary_search_by_key(&stringify!($optional), |&(name, _)| name).unwrap();
@@ -72,7 +85,7 @@ macro_rules! generate_request_setters {
                     request_setter_body!(self, $optional)
                 }
             }
-         )*
+        )*
     }
 }
 
@@ -116,11 +129,11 @@ macro_rules! create_request {
         }
 
         impl XiamiRequest for $name {
-            fn get_url(&self) -> &'static str {
+            fn url(&self) -> &'static str {
                 $url
             }
 
-            fn get_params(&self) -> Vec<(&'static str, Parameter)> {
+            fn params(&self) -> Vec<(&'static str, Parameter)> {
                 self.params
                     .iter()
                     .filter(|&&(_, ref p)| p.is_some())
