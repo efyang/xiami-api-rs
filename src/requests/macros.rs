@@ -56,10 +56,10 @@ macro_rules! generate_request_setters {
 }
 
 macro_rules! impl_req {
-    ($name:ident, $url:expr) => {
+    ($name:ident, $api:expr) => {
         impl XiamiRequest for $name {
-            fn url(&self) -> &'static str {
-                $url
+            fn api(&self) -> &'static str {
+                $api
             }
 
             fn params(&self) -> Vec<(&'static str, Parameter)> {
@@ -77,7 +77,7 @@ macro_rules! impl_req {
 macro_rules! create_request {
     {
         $name:ident,
-        $url:expr,
+        $api:expr,
         required { $($required:ident : $requiredtype:ident),* }
         optional { $($optional:ident : $optionaltype:ident),* }
     } => {
@@ -97,11 +97,11 @@ macro_rules! create_request {
             }
             generate_request_setters!($name, $($optional:$optionaltype),*);
         }
-        impl_req!($name, $url);
+        impl_req!($name, $api);
     };
     {
         $name:ident,
-        $url:expr,
+        $api:expr,
         optional { $($optional:ident : $optionaltype:ident),* }
     } => {
         pub struct $name {
@@ -120,11 +120,11 @@ macro_rules! create_request {
             }
             generate_request_setters!($name, $($optional:$optionaltype),*);
         }
-        impl_req!($name, $url);
+        impl_req!($name, $api);
     };
     {
         $name:ident,
-        $url:expr,
+        $api:expr,
         required { $($required:ident : $requiredtype:ident),* }
     } => {
         pub struct $name {
@@ -142,12 +142,12 @@ macro_rules! create_request {
                 }
             }
         }
-        impl_req!($name, $url);
+        impl_req!($name, $api);
     };
 
     {
         $name:ident,
-        $url:expr
+        $api:expr
     } => {
         pub struct $name {}
 
@@ -158,8 +158,8 @@ macro_rules! create_request {
         }
 
         impl XiamiRequest for $name {
-            fn url(&self) -> &'static str {
-                $url
+            fn api(&self) -> &'static str {
+                $api
             }
 
             fn params(&self) -> Vec<(&'static str, Parameter)> {

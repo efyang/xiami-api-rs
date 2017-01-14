@@ -23,7 +23,7 @@ pub mod recommend;
 pub mod playlog;
 
 pub trait XiamiRequest {
-    fn url(&self) -> &str;
+    fn api(&self) -> &str;
     fn params(&self) -> Vec<(&'static str, Parameter)>;
 }
 
@@ -48,8 +48,8 @@ auto_impl_param!(String, Parameter::String);
 auto_impl_param!(isize, Parameter::Number);
 auto_impl_param!(bool, Parameter::Boolean);
 
-impl Into<String> for Parameter {
-    fn into(self) -> String {
+impl Parameter {
+    pub fn into_string(self) -> String {
         match self {
             Parameter::String(s) => s,
             Parameter::Number(i) => i.to_string(),
